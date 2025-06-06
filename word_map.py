@@ -60,20 +60,20 @@ def lat_formatter_minute(value, pos=None):
 def add_scalebar_x(ax, pos, area, scalebar_length_km, color="white",fontsize=10):
     x_pos,y_pos = pos
     width_meters0, width_meters1, height_meters = boundary_size_lonlat_to_meter(area)
-    #计算比例尺在figure中的相对长度
+
     scalebar_length = scalebar_length_km * 1000 / width_meters0
     
-    # 绘制比例尺的横线
+    # The line of scale bar
     line = Line2D([x_pos,x_pos+scalebar_length], [y_pos,y_pos], transform=ax.transAxes, color=color, linewidth=2)
     ax.add_line(line)
 
-    # 绘制比例尺两端的竖线
+    # side bar
     side_bar = Line2D([x_pos,x_pos], [y_pos,y_pos+0.01], transform=ax.transAxes, color=color, linewidth=2)
     ax.add_line(side_bar)
     side_bar = Line2D([x_pos+scalebar_length,x_pos+scalebar_length], [y_pos,y_pos+0.01], transform=ax.transAxes, color=color, linewidth=2)
     ax.add_line(side_bar)
 
-    # 在比例尺上方标注长度
+    # add annotation
     ax.text(
         x_pos + scalebar_length / 2, y_pos + 0.02, f"{scalebar_length_km} km",transform=ax.transAxes,
         horizontalalignment="center", verticalalignment="bottom", color=color, fontsize=fontsize
