@@ -2,11 +2,18 @@
 """
 @author: Manchun LEI
 """
+'''
+Modification 2025-06-16
+A New flexible way to display locator
+change the use of MaxNLocator (use defined nbins), 
+use a more flexible calculation of interval value
+'''
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from matplotlib.patches import Rectangle
 from matplotlib.ticker import FuncFormatter, MaxNLocator
+from matplotlib.ticker import MultipleLocator
 from matplotlib.lines import Line2D
 from pyproj import Proj, transform
 from geopy.distance import geodesic
@@ -52,10 +59,13 @@ def lat_formatter_minute(value, pos=None):
     else:
         return f"{degrees:d}°{minutes:d}'N"
 
-# def calculate_figure_dimensions(area_width, area_height, figure_height, margin_ratio=0.15):
-#     aspect_ratio = area_width / area_height
-#     figure_width = figure_height * aspect_ratio * (1 + margin_ratio)
-#     return figure_width
+def get_locator_interval(span, target_ticks=5):
+    step = span / target_ticks
+    # usual interval set
+    for interval in [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1]:
+        if step <= interval:
+            return interval
+    return 1  # fallback
 
 def add_scalebar_x(ax, pos, area, scalebar_length_km, color="white",fontsize=10):
     x_pos,y_pos = pos
@@ -113,10 +123,20 @@ def word_map_lonlat(area, sub_area=None, dstfile=None, figure_height=8, fontsize
 
     ax.set_xlim(lon0, lon1)
     ax.set_ylim(lat0, lat1)
-    ax.xaxis.set_major_formatter(FuncFormatter(lon_formatter))
-    ax.yaxis.set_major_formatter(FuncFormatter(lat_formatter))
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
-    ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+    ax.xaxis.set_major_formatter(FuncFormatter(lon_formatter_minute))
+    ax.yaxis.set_major_formatter(FuncFormatter(lat_formatter_minute))
+    '''
+    Modification 2025-06-16
+    A New flexible way to display locator
+    change the use of MaxNLocator (use defined nbins), 
+    use a more flexible calculation of interval value
+    '''
+    # ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+    # ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+    lon_interval = get_locator_interval(lon1 - lon0)
+    lat_interval = get_locator_interval(lat1 - lat0)
+    ax.xaxis.set_major_locator(MultipleLocator(lon_interval))
+    ax.yaxis.set_major_locator(MultipleLocator(lat_interval))
     ax.tick_params(axis='both', labelsize=fontsize)
     # ax.set_xlabel("Longitude")
     # ax.set_ylabel("Latitude")
@@ -141,13 +161,23 @@ def image_with_lonlat(srcfile,area,dstfile=None,figure_height=8,fontsize=12):
     
     ax.xaxis.set_major_formatter(FuncFormatter(lon_formatter_minute))
     ax.yaxis.set_major_formatter(FuncFormatter(lat_formatter_minute))
-    ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
-    ax.yaxis.set_major_locator(MaxNLocator(nbins=4))
+    '''
+    Modification 2025-06-16
+    A New flexible way to display locator
+    change the use of MaxNLocator (use defined nbins), 
+    use a more flexible calculation of interval value
+    '''
+    # ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
+    # ax.yaxis.set_major_locator(MaxNLocator(nbins=4))
     ax.set_xlim(lon0, lon1)
     ax.set_ylim(lat0, lat1)
     ax.grid(color="gray", linestyle="--", linewidth=1)
     # ax.set_xlabel("Longitude")
     # ax.set_ylabel("Latitude")
+    lon_interval = get_locator_interval(lon1 - lon0)
+    lat_interval = get_locator_interval(lat1 - lat0)
+    ax.xaxis.set_major_locator(MultipleLocator(lon_interval))
+    ax.yaxis.set_major_locator(MultipleLocator(lat_interval))
     ax.tick_params(axis='both', labelsize=fontsize)
     plt.tight_layout()
     if dstfile:
